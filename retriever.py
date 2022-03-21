@@ -1,7 +1,9 @@
 
+import os
 import mintapi
 import pandas as pd
 import yaml
+from datetime import date
 
 
 def get_mint(email, password, wait_for_sync=False):
@@ -20,7 +22,7 @@ def get_mint(email, password, wait_for_sync=False):
     return mint
 
 
-def get_transactions(mint):
+def get_transactions(mint, data_path=None):
     # get transactions
     trans = mint.get_transactions(include_investment=True).copy()
 
@@ -38,8 +40,14 @@ def get_transactions(mint):
     trans = trans.reset_index(drop=True)
     trans.index = trans.index.rename('id')
 
+    # export
+    if data_path:
+        trans.to_csv(os.join(data_path, 'transactions.csv'))
 
-def get_account_data(mint, account_values_csv):
+    return trans
+
+
+def get_account_data(mint, data_path):
 
     # get account data
     account_data = pd.DataFrame.from_records(mint.get_accounts())
@@ -54,6 +62,11 @@ def get_account_data(mint, account_values_csv):
     # account values
     account_values = account_data[['accountName', 'value', 'date']]
 
+    # export
+    if data_path:
+        accounts.to_csv(os.join(data_path, 'accounts.csv'))
+        account_values.to_csv(os.join(data_path, f'account_values_{str(date.today())}.csv'))
+
     return accounts, account_values
 
 
@@ -63,9 +76,12 @@ def get_settings(settings_yaml):
             return yaml.safe_load(stream)
         except yaml.YAMLError as exc:
             print(exc)
+            return
 
 
 if __name__ == "__main__":
     settings = get_settings('settings.yaml')
+    print(settings)
     mint = get_mint(settings['email'], settings['password'])
-    print(settings['email'])
+    trans = get_transactions(mint, 'data')
+    accounts, account_values = get_account_data(mint, 'data')

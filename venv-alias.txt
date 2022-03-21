@@ -1,0 +1,2 @@
+echo "alias venv=\"cd $(pwd) && source venv/bin/activate && clear \"" >> ~/.bash_profile
+source ~/.bash_profile
