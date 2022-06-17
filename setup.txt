@@ -1,0 +1,15 @@
+# setup venv
+virtualenv -p $(which python3) venv
+
+# setup alias
+echo "alias venv=\"cd $(pwd) && source venv/bin/activate && clear \"" >> ~/.bash_profile
+source ~/.bash_profile
+venv
+
+# or activate without alias
+source venv/bin/activate
+
+# install
+pip install mintapi
+pip install pandas
+pip install pyyaml
