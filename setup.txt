@@ -10,6 +10,8 @@ venv
 source venv/bin/activate
 
 # install
+pip install --upgrade pip
 pip install mintapi
 pip install pandas
 pip install pyyaml
+pip install flake8
