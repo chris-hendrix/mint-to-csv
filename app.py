@@ -6,11 +6,18 @@ import pandas as pd
 import yaml
 from datetime import date, datetime, timedelta
 
-RAW_TRANSACTIONS_FILE = 'transactions_raw.csv'
-RAW_ACCOUNTS_FILE = 'accounts_raw.csv'
-TRANSACTIONS_FILE = 'transactions.csv'
-ACCOUNTS_FILE = 'accounts.csv'
-ACCOUNT_VALUES_FILE = 'account_values.csv'
+TRANSACTIONS_PATH = 'transactions'
+ACCOUNTS_PATH = 'accounts'
+ACCOUNT_VALUES_PATH = 'account_values'
+ACCOUNT_VALUES_HISTORY_PATH = 'account_values_history'
+
+RAW_TRANSACTIONS_FILE = f'{TRANSACTIONS_PATH}_raw.csv'
+RAW_ACCOUNTS_FILE = f'{ACCOUNTS_PATH}_raw.csv'
+
+TRANSACTIONS_FILE = f'{TRANSACTIONS_PATH}.csv'
+ACCOUNTS_FILE = f'{ACCOUNTS_PATH}.csv'
+ACCOUNT_VALUES_FILE = f'{ACCOUNT_VALUES_PATH}.csv'
+ACCOUNT_VALUES_HISTORY_FILE = f'{ACCOUNT_VALUES_HISTORY_PATH}.csv'
 
 
 def get_settings(settings_yaml):
@@ -63,7 +70,7 @@ def get_accounts(mint, data_path):
     return accounts
 
 
-def load_data_from_csv(file, data_path, min_days_old=1):
+def load_recent_data_from_csv(file, data_path, min_days_old=1):
     fullname = os.path.join(data_path, file)
     if not os.path.isfile(fullname):
         return None
@@ -93,7 +100,7 @@ def format_transactions(trans, out_path=None):
     return trans
 
 
-def format_accounts(accounts, out_path=None):
+def format_accounts(accounts, out_path=None, history_path=None):
     trouble_cols = ['possibleLinkAccounts', 'closeDateInDate']
     accounts = accounts.drop(trouble_cols, axis=1, errors='ignore')
     accounts['date'] = pd.to_datetime('today')
@@ -101,13 +108,16 @@ def format_accounts(accounts, out_path=None):
 
     accounts = accounts.drop_duplicates(subset=['name'], keep='last').reset_index(drop=True)
 
-    account_values_now = accounts[['name', 'value', 'date']]
+    account_values = accounts[['name', 'value', 'date']]
 
     if out_path is not None:
         accounts.to_csv(os.path.join(out_path, ACCOUNTS_FILE))
-        account_values_now.to_csv(os.path.join(out_path, f'account_values_now_{str(date.today())}.csv'))
+        account_values.to_csv(os.path.join(out_path, ACCOUNT_VALUES_FILE))
 
-    return accounts, account_values_now
+    if history_path is not None:
+        account_values.to_csv(os.path.join(history_path, ACCOUNT_VALUES_FILE.replace('.csv', f'_{str(date.today())}.csv')))
+
+    return accounts, account_values
 
 
 def append_transaction_history(trans, history_path):
@@ -118,39 +128,41 @@ def append_transaction_history(trans, history_path):
     return trans
 
 
-def get_all_account_values(account_values_now, history_path, out_path=None):
+def get_account_values_history(account_values, history_path, out_path=None):
     history_files = get_files(history_path)
     latest_file = history_files[-1]
-    account_values = pd.read_csv(latest_file, parse_dates=['date'])
-    account_values = account_values.append(account_values_now)
-    account_values.to_csv(os.path.join(history_path, f'account_values_{str(date.today())}.csv'))
+    print('latest_file', latest_file)
+    account_values_history = pd.read_csv(latest_file, parse_dates=['date'])
+    account_values_history = account_values_history.append(account_values)
+    account_values_history.to_csv(os.path.join(history_path, ACCOUNT_VALUES_HISTORY_FILE.replace('.csv', f'_{str(date.today())}.csv')))
 
     if out_path is not None:
         accounts.to_csv(os.path.join(out_path, ACCOUNTS_FILE))
-        account_values_now.to_csv(os.path.join(out_path, 'account_values.csv'))
+        account_values_history.to_csv(os.path.join(out_path, ACCOUNT_VALUES_HISTORY_FILE))
 
-    return account_values
+    return account_values_history
 
 
 if __name__ == "__main__":
     settings = get_settings('settings.yaml')
-    data_path = ''
-    transaction_history_path = 'data/transaction_history'
-    account_history_path = 'data/account_history'
+    data_path = 'data'
+    transactions_path = os.path.join(data_path, TRANSACTIONS_PATH)
+    account_values_path = os.path.join(data_path, ACCOUNT_VALUES_PATH)
+    account_values_history_path = os.path.join(data_path, ACCOUNT_VALUES_HISTORY_PATH)
     mint = None
 
     # get transactions
-    trans = load_data_from_csv(RAW_TRANSACTIONS_FILE, data_path)
+    trans = load_recent_data_from_csv(RAW_TRANSACTIONS_FILE, data_path, min_days_old=1)
     if trans is None:
         mint = get_mint(settings['email'], settings['password'])
         trans = get_transactions(mint, data_path)
-    trans = append_transaction_history(trans, transaction_history_path)
+    trans = append_transaction_history(trans, transactions_path)
     trans = format_transactions(trans, data_path)
 
     # get accounts
-    accounts = load_data_from_csv(RAW_ACCOUNTS_FILE, data_path)
+    accounts = load_recent_data_from_csv(RAW_ACCOUNTS_FILE, data_path, min_days_old=1)
     if accounts is None:
         mint = get_mint(settings['email'], settings['password']) if mint is None else mint
         accounts = get_accounts(mint, data_path)
-    accounts, account_values_now = format_accounts(accounts, data_path)
-    account_values = get_all_account_values(account_values_now, account_history_path, data_path)
+    accounts, account_values = format_accounts(accounts, data_path, account_values_path)
+    account_values_history = get_account_values_history(account_values, account_values_history_path, data_path)
