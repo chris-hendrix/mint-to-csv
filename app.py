@@ -161,7 +161,7 @@ def get_account_values_history(account_values, data_path):
 
 if __name__ == "__main__":
     settings = get_settings('settings.yaml')
-    data_path = 'data'
+    data_path = settings['data_path']
     account_values_path = os.path.join(data_path, ACCOUNT_VALUES_PATH)
     account_values_history_path = os.path.join(data_path, ACCOUNT_VALUES_HISTORY_PATH)
     mint = None
