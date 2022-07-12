@@ -1,3 +1,4 @@
 settings.yaml
 *.csv
 chromedriver
+__pycache__/
