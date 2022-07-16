@@ -6,28 +6,56 @@ import os
 
 
 @st.cache
-def get_data(file):
-    return pd.read_csv(file)
+def get_data(file, columns=None):
+    data = pd.read_csv(file)
+    if columns:
+        data = data[columns]
+    if 'date' in data.columns:
+        data['date'] = pd.to_datetime(data['date'])
+
+    print(data.head())
+    return data
+
+
+def add_filter(data, column, selected_values):
+    if not selected_values or len(selected_values) == 0:
+        return data
+    if isinstance(data, list):
+        for df in data:
+            df = df.loc[df[column].isin(selected_values)]
+    else:
+        data = data.loc[data[column].isin(selected_values)]
+    return data
 
 
 settings = data.get_settings('settings.yaml')
 data_path = settings['data_path']
+
+
+# get data
 account_values_history_file = os.path.join(data_path, data.ACCOUNT_VALUES_HISTORY_FILE)
-account_values_history = get_data(account_values_history_file)
+accounts_file = os.path.join(data_path, data.ACCOUNTS_FILE)
+transactions_file = os.path.join(data_path, data.TRANSACTIONS_FILE)
+account_values = get_data(account_values_history_file)
+accounts = get_data(accounts_file, columns=['id', 'name', 'type', 'systemStatus'])
+transactions = get_data(transactions_file)
 
-account_filter = [True] * account_values_history.shape[0]
+# joins
+account_values = pd.merge(account_values, accounts, how='left', on='name')
+account_values = pd.merge(transactions, accounts, how='left', left_on='accountId', right_on='id')
 
-# ---- SIDEBAR ----
-st.sidebar.header("Please Filter Here:")
-account_names = st.sidebar.multiselect(
-    "Select accounts:",
-    options=account_values_history["accountName"].unique()
-)
+# sidebar
+st.sidebar.header("Account:")
+account_names = st.sidebar.multiselect('Account name:', options=account_values['name'].unique())
+account_types = st.sidebar.multiselect('Account type:', options=account_values['type'].unique())
 
-if len(account_names) > 0:
-    account_filter = account_filter & account_values_history['accountName'].isin(account_names)
+add_filter([account_values, transactions], 'name', account_names)
+add_filter([account_values, transactions], 'type', account_types)
+account_worths = account_values.groupby('date')['value'].sum()
 
 
-account_values_history_filtered = account_values_history.loc[account_filter]
+# main page
+st.dataframe(transactions)
+st.dataframe(account_values)
 
-st.dataframe(account_values_history_filtered)
+st.line_chart(account_worths, use_container_width=True)
