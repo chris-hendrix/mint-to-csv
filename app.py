@@ -44,17 +44,25 @@ def get_active_accounts(account_values):
     active = active.loc[active['value'] > 0]
 
 
+def get_deposit(transactions, row, start=None):
+    if row['accountType'] != 'Investment':
+        return 0
+    filter = transactions['name'] == row['name']  # & transactions['date'].astype(str) <= str(row['date'])
+    if start:
+        filter = filter & transactions['date'] >= start
+    filtered = transactions.loc[filter]
+    return filtered['amount'].sum()
+
+
+def set_deposits(account_values, transactions):
+    inv_transactions = transactions[transactions['accountType'] == 'Investment']
+    account_values['deposits'] = account_values.apply(lambda row: get_deposit(inv_transactions, row), axis=1)
+    return account_values
+
+
 def cell_to_dict(cell):
-    cell = cell.replace('"', '')
-    cell = cell.replace("'", '"')
-    cell = json.loads(str(cell))
-    return cell
-
-
-def get_cat_name(cell):
-    if '{' in cell:
-        return cell_to_dict(cell)['name']
-    return cell
+    cell = str(cell.replace('"', '').replace("'", '"'))
+    return json.loads(cell)
 
 
 def get_categories(transactions):
@@ -88,7 +96,6 @@ account_values = clean(pd.read_csv(account_values_history_file))
 accounts = clean(pd.read_csv(accounts_file))[['id', 'name', 'type', 'systemStatus', 'value']]
 transactions = clean(pd.read_csv(transactions_file))
 categories = get_categories(transactions)
-transactions = set_transaction_categories(transactions, categories)
 
 # rename columns
 accounts = clean(accounts.rename(columns={'type': 'accountType', 'value': 'accountValue'}))
@@ -96,6 +103,10 @@ accounts = clean(accounts.rename(columns={'type': 'accountType', 'value': 'accou
 # joins
 account_values = clean(pd.merge(account_values, accounts, how='left', on='name'))
 transactions = clean(pd.merge(transactions, accounts, how='left', left_on='accountId', right_on='id'))
+
+# add columns
+transactions = set_transaction_categories(transactions, categories)
+account_values = set_deposits(account_values, transactions)
 
 # sidebar filters
 st.sidebar.header("Account:")
@@ -114,7 +125,10 @@ transactions = add_filter(transactions, 'categoryName', category_names)
 
 
 # main dashboard
+st.header('Accounts')
 st.dataframe(accounts[['name', 'accountValue']])
-st.dataframe(transactions[['date', 'name', 'description', 'amount', 'categoryName', 'parentName']])
-st.dataframe(account_values[['date', 'name', 'value']])
+st.header('Account Values')
+st.dataframe(account_values[['date', 'name', 'value', 'deposits']])
 st.line_chart(account_worths, use_container_width=True)
+st.header('Transactions')
+st.dataframe(transactions[['date', 'name', 'description', 'amount', 'categoryName', 'parentName']])
