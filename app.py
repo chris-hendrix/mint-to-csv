@@ -9,12 +9,11 @@ import json
 
 def clean(df):
     if 'date' in df.columns:
-        df['date'] = pd.to_datetime(df['date'])
+        df['date'] = pd.to_datetime(df['date']).dt.date
 
     for col in df.columns:
-        if is_bool_dtype(df[col]) or is_numeric_dtype(df[col]):
-            continue
-        df[col] = df[col].fillna('null')
+        if not is_bool_dtype(df[col]) and not is_numeric_dtype(df[col]):
+            df[col] = df[col].fillna('null')
 
     if 'accountType' in df.columns and 'name' in df.columns:
         df.loc[df['name'].str.contains('Wallet'), 'accountType'] = 'CryptoAccount'
@@ -47,10 +46,15 @@ def get_active_accounts(account_values):
 def get_deposit(transactions, row, start=None):
     if row['accountType'] != 'Investment':
         return 0
-    filter = transactions['name'] == row['name']  # & transactions['date'].astype(str) <= str(row['date'])
+
+    mask = (
+        (transactions['name'] == row['name']) &
+        (transactions['date'] <= row['date']) &
+        (transactions['categoryName'].isin(['Deposit', 'Withdrawal']))
+    )
     if start:
-        filter = filter & transactions['date'] >= start
-    filtered = transactions.loc[filter]
+        mask = (mask) & (transactions['date'] >= start)
+    filtered = transactions.loc[mask]
     return filtered['amount'].sum()
 
 
@@ -70,6 +74,7 @@ def get_categories(transactions):
     cat_data = [cell_to_dict(c) for c in categories if '{' in c]
     categories = pd.DataFrame.from_dict(cat_data)
     categories = clean(categories.rename(columns={'name': 'categoryName'}))
+    categories['parentName'] = categories.apply(lambda row: row['categoryName'] if row['parentName'] == 'Root' else row['parentName'], axis=1)
     return categories
 
 
@@ -115,20 +120,29 @@ account_types = get_multiselect(account_values, 'accountType')
 accounts, account_values, transactions = add_filters([accounts, account_values, transactions], 'accountType', account_types)
 account_names = get_multiselect(transactions, 'name')
 accounts, account_values, transactions = add_filters([accounts, account_values, transactions], 'name', account_names)
-account_worths = account_values.groupby('date')['value'].sum()
 
+# net and investment worths
+invest_values = account_values[account_values['accountType'] == 'Investment']
+invest_worths = pd.DataFrame(invest_values.groupby('date')[['value', 'deposits']].sum()).rename(columns={'value': 'invest'})
+invest_worths['gain'] = invest_worths['invest'] - invest_worths['deposits']
+account_worths = pd.DataFrame(account_values.groupby('date')[['value']].sum()).rename({'value': 'net'})
+account_worths = clean(pd.merge(account_worths, invest_worths, how='left', on='date'))
+
+# display sidebar
 st.sidebar.header("Category:")
 parent_names = get_multiselect(transactions, 'parentName')
 transactions = add_filter(transactions, 'parentName', parent_names)
 category_names = get_multiselect(transactions, 'categoryName')
 transactions = add_filter(transactions, 'categoryName', category_names)
 
-
-# main dashboard
+# display tables
+st.header('Transactions')
+st.dataframe(transactions[['date', 'name', 'description', 'amount', 'categoryName', 'parentName']])
 st.header('Accounts')
 st.dataframe(accounts[['name', 'accountValue']])
 st.header('Account Values')
 st.dataframe(account_values[['date', 'name', 'value', 'deposits']])
+
+# display charts
+st.header('Net Worth')
 st.line_chart(account_worths, use_container_width=True)
-st.header('Transactions')
-st.dataframe(transactions[['date', 'name', 'description', 'amount', 'categoryName', 'parentName']])
