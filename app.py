@@ -4,9 +4,9 @@ from pandas.api.types import is_numeric_dtype, is_bool_dtype
 import streamlit as st
 import data
 import os
+import json
 
 
-@st.cache
 def clean(df):
     if 'date' in df.columns:
         df['date'] = pd.to_datetime(df['date'])
@@ -44,6 +44,33 @@ def get_active_accounts(account_values):
     active = active.loc[active['value'] > 0]
 
 
+def cell_to_dict(cell):
+    cell = cell.replace('"', '')
+    cell = cell.replace("'", '"')
+    cell = json.loads(str(cell))
+    return cell
+
+
+def get_cat_name(cell):
+    if '{' in cell:
+        return cell_to_dict(cell)['name']
+    return cell
+
+
+def get_categories(transactions):
+    categories = sorted(transactions['category'].unique())
+    cat_data = [cell_to_dict(c) for c in categories if '{' in c]
+    categories = pd.DataFrame.from_dict(cat_data)
+    categories = clean(categories.rename(columns={'name': 'categoryName'}))
+    return categories
+
+
+def set_transaction_categories(transactions, categories):
+    transactions['categoryName'] = transactions['category'].apply(lambda cell: cell_to_dict(cell)['name'] if '{' in cell else cell)
+    transactions = clean(pd.merge(transactions, categories, how='left', on='categoryName'))
+    return transactions
+
+
 def get_multiselect(df, column, name=None):
     options = sorted(df[column].unique())
     return st.sidebar.multiselect(f'{name or column}: ', options=options)
@@ -60,6 +87,8 @@ transactions_file = os.path.join(data_path, data.TRANSACTIONS_FILE)
 account_values = clean(pd.read_csv(account_values_history_file))
 accounts = clean(pd.read_csv(accounts_file))[['id', 'name', 'type', 'systemStatus', 'value']]
 transactions = clean(pd.read_csv(transactions_file))
+categories = get_categories(transactions)
+transactions = set_transaction_categories(transactions, categories)
 
 # rename columns
 accounts = clean(accounts.rename(columns={'type': 'accountType', 'value': 'accountValue'}))
@@ -77,8 +106,15 @@ account_names = get_multiselect(transactions, 'name')
 accounts, account_values, transactions = add_filters([accounts, account_values, transactions], 'name', account_names)
 account_worths = account_values.groupby('date')['value'].sum()
 
+st.sidebar.header("Category:")
+parent_names = get_multiselect(transactions, 'parentName')
+transactions = add_filter(transactions, 'parentName', parent_names)
+category_names = get_multiselect(transactions, 'categoryName')
+transactions = add_filter(transactions, 'categoryName', category_names)
+
+
 # main dashboard
 st.dataframe(accounts[['name', 'accountValue']])
-st.dataframe(transactions[['date', 'name', 'category', 'description', 'amount']])
+st.dataframe(transactions[['date', 'name', 'description', 'amount', 'categoryName', 'parentName']])
 st.dataframe(account_values[['date', 'name', 'value']])
 st.line_chart(account_worths, use_container_width=True)

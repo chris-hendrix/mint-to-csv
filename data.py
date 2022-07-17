@@ -98,7 +98,6 @@ def format_transactions(trans, out_path=None):
     trans['date'] = pd.to_datetime(trans['date'])
     trans['date'] = trans['date'].dt.date
     trans = trans.sort_values(by=['date'])
-    trans['category'] = trans['category'].str.title()
 
     # renumber index
     trans = trans.reset_index(drop=True)
