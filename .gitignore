@@ -1,4 +1,5 @@
 settings.yaml
 *.csv
+!*user-categories.csv
 chromedriver
 __pycache__/

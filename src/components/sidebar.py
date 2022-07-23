@@ -8,7 +8,7 @@ def get_multiselect(df, column, name=None):
 
 
 class SideBar():
-    def __init__(self, data, filters):
+    def __init__(self, data, filters, category_type_column='categoryType', category_group_column='parentName'):
         transactions = data['transactions']
         account_values = data['accountValues']
         accounts = data['accounts']
@@ -25,10 +25,11 @@ class SideBar():
         accounts, account_values, transactions = add_filters([accounts, account_values, transactions], 'name', account_names)
 
         st.sidebar.header("Category:")
-        category_types = get_multiselect(transactions, 'categoryType')
-        transactions = add_filter(transactions, 'categoryType', category_types)
-        category_groups = get_multiselect(transactions, 'parentName')
-        transactions = add_filter(transactions, 'parentName', category_groups)
+        category_types = get_multiselect(transactions, category_type_column)
+        print(category_types)
+        transactions = add_filter(transactions, category_type_column, category_types)
+        category_groups = get_multiselect(transactions, category_group_column)
+        transactions = add_filter(transactions, category_group_column, category_groups)
         category_names = get_multiselect(transactions, 'categoryName')
         transactions = add_filter(transactions, 'categoryName', category_names)
 

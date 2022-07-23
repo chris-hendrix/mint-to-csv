@@ -7,15 +7,21 @@ from components.networth import NetWorth
 from components.spending import Spending
 from components.debug import Debug
 
+USER_CATEGORY_FILE = '../user-categories.csv'
+
 
 class App:
     def __init__(self, data_path):
+        category_type_column = 'userCategoryType'
+        category_group_column = 'userCategoryGroup'
+        included_types = ['Necessary', 'Discretionary']
 
         self.data = {
             'accountValues': None,
             'accounts': None,
             'categories': None,
-            'transactions': None
+            'transactions': None,
+            'userCategories': None
         }
         self.filters = {
             'dateMin': None,
@@ -27,14 +33,13 @@ class App:
             'categoryGroups': None,
         }
         self.get_data(data_path)
-        self.sidebar = SideBar(self.data, self.filters)
+        self.sidebar = SideBar(self.data, self.filters, category_type_column, category_group_column)
         self.filter_data()
         self.networth = NetWorth(self.data)
-        self.spending = Spending(self.data)
+        self.spending = Spending(self.data, category_group_column, category_type_column, included_types=included_types)
         self.debug = Debug(self.data)
 
     def get_data(self, data_path):
-        print(self.filters)
 
         # get data
         account_values_history_file = os.path.join(data_path, data.ACCOUNT_VALUES_HISTORY_FILE)
@@ -44,16 +49,19 @@ class App:
         accounts = clean(pd.read_csv(accounts_file))[['id', 'name', 'type', 'systemStatus', 'value']]
         transactions = clean(pd.read_csv(transactions_file))
         categories = get_categories(transactions)
+        user_categories = clean(pd.read_csv(USER_CATEGORY_FILE)) if os.path.exists(USER_CATEGORY_FILE) else None
+        print(user_categories)
 
         # rename columns
         accounts = clean(accounts.rename(columns={'type': 'accountType', 'value': 'accountValue'}))
 
         # joins
         account_values = clean(pd.merge(account_values, accounts, how='left', on='name'))
-        transactions = clean(pd.merge(transactions, accounts, how='left', left_on='accountId', right_on='id'))
+        transactions = pd.merge(transactions, accounts, how='left', left_on='accountId', right_on='id')
 
         # add columns
         transactions = set_transaction_categories(transactions, categories)
+        transactions = clean(pd.merge(transactions, user_categories, how='left', on='categoryName')) if user_categories is not None else transactions
         account_values = set_deposits(account_values, transactions)
 
         # set data

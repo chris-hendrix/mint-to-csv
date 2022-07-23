@@ -1,0 +1,111 @@
+categoryName,userCategoryGroup,userCategoryType
+Bills & Utilities,Bills,Necessary
+Home Phone,Bills,Necessary
+Internet,Bills,Necessary
+Television,Bills,Necessary
+Utilities,Bills,Necessary
+Bonus,Bonus,Income
+Charity,Charity,Income
+Alcohol & Bars,Eating Out,Discretionary
+Coffee Shops,Eating Out,Discretionary
+Fast Food,Eating Out,Discretionary
+Food & Dining,Eating Out,Discretionary
+Restaurants,Eating Out,Discretionary
+Takeout,Eating Out,Discretionary
+Amusement,Entertainment,Discretionary
+Books & Supplies,Entertainment,Discretionary
+Entertainment,Entertainment,Discretionary
+Movies & DVDs,Entertainment,Discretionary
+Music,Entertainment,Discretionary
+Newspapers & Magazines,Entertainment,Discretionary
+Sports,Entertainment,Discretionary
+Groceries,Groceries,Necessary
+Gym,Gym,Necessary
+Home,Home,Necessary
+Home Improvement,Home,Necessary
+Home Services,Home,Necessary
+Home Supplies,Home,Necessary
+Lawn & Garden,Home,Necessary
+Buy,Investments,Investments
+Dividend & Cap Gains,Investments,Investments
+Investments,Investments,Investments
+Loans,Investments,Investments
+Trade Commissions,Investments,Investments
+Withdrawal,Investments,Investments
+Deposit,Investments,Investments
+Loan Interest,Loan,Debt
+Loan Payment,Loan,Debt
+Dentist,Medical,Necessary
+Doctor,Medical,Necessary
+Health & Fitness,Medical,Necessary
+Health Insurance,Medical,Necessary
+Pharmacy,Medical,Necessary
+ATM Fee,Other Expenses,Discretionary
+Bank Fee,Other Expenses,Discretionary
+Cash & ATM,Other Expenses,Discretionary
+Check,Other Expenses,Discretionary
+Contribution,Other Expenses,Discretionary
+Fees & Charges,Other Expenses,Discretionary
+Finance Charge,Other Expenses,Discretionary
+Financial,Other Expenses,Discretionary
+Financial Advisor,Other Expenses,Discretionary
+Gift,Other Expenses,Discretionary
+Hair,Other Expenses,Discretionary
+Late Fee,Other Expenses,Discretionary
+Laundry,Other Expenses,Discretionary
+Misc Expenses,Other Expenses,Discretionary
+Realtor Fee,Other Expenses,Discretionary
+Service Fee,Other Expenses,Discretionary
+Uncategorized,Other Expenses,Discretionary
+Income,Other Income,Income
+Interest Income,Other Income,Income
+Reimbursement,Other Income,Income
+Returned Purchase,Other Income,Income
+Rewards,Other Income,Income
+Stimulus,Other Income,Income
+Paycheck,Paycheck,Income
+Advertising,Professional,Necessary
+Betting,Other Expenses,Necessary
+Business Services,Professional,Necessary
+Education,Professional,Necessary
+Licenses,Professional,Necessary
+Memberships,Professional,Necessary
+Office Supplies,Professional,Necessary
+Printing,Professional,Necessary
+Professional License,Professional,Necessary
+Shipping,Professional,Necessary
+Mortgage & Rent,Rent,Necessary
+Books,Shopping,Discretionary
+Clothing,Shopping,Discretionary
+Electronics & Software,Shopping,Discretionary
+Furnishings,Shopping,Discretionary
+Hobbies,Shopping,Discretionary
+Shopping,Shopping,Discretionary
+Sporting Goods,Shopping,Discretionary
+Student Loan,Student Loan,Discretionary
+Federal Tax,Taxes,Taxes
+Local Tax,Taxes,Taxes
+State Tax,Taxes,Taxes
+Taxes,Taxes,Taxes
+Credit Card Payment,Transfer,Transfer
+Transfer,Transfer,Transfer
+Transfer for Cash Spending,Transfer,Transfer
+Auto & Transport,Transportation,Necessary
+Auto Insurance,Transportation,Necessary
+Auto Payment,Transportation,Necessary
+Gas & Fuel,Transportation,Necessary
+Parking,Transportation,Necessary
+Public Transportation,Transportation,Necessary
+Rental Car & Taxi,Transportation,Necessary
+Service & Parts,Transportation,Necessary
+Air Travel,Travel,Discretionary
+Bus/Train Travel,Travel,Discretionary
+Hotel,Travel,Discretionary
+Travel,Travel,Discretionary
+Vacation,Travel,Discretionary
+Sell,Investments,Investments
+Life Insurance,Other Expenses,Discretionary
+Gifts & Donations,Other Expenses,Discretionary
+Home Insurance,Other Expenses,Discretionary
+Personal Care,Other Expenses,Discretionary
+Ride Share,Transportation,Discretionary

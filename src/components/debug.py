@@ -10,7 +10,7 @@ class Debug():
 
         col1, col2 = st.columns(2)
         st.header('Transactions')
-        st.dataframe(transactions[['date', 'name', 'description', 'amount', 'categoryName', 'parentName']])
+        st.dataframe(transactions[['date', 'name', 'description', 'amount', 'categoryName', 'userCategoryGroup', 'userCategoryType']])
         st.header('Categories')
         st.dataframe(categories)
         with col1:
