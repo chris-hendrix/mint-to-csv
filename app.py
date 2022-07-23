@@ -29,6 +29,13 @@ def add_filter(df, column, selected_values):
     return df
 
 
+def add_date_filter(df, date_0, date_1, column='date'):
+    if not date_0 or not date_1:
+        return df
+    df = df.loc[(df[column] >= date_0) & (df[column] <= date_1)]
+    return df
+
+
 def add_filters(dfs, column, selected_values):
     filtered = []
     for df in dfs:
@@ -114,7 +121,14 @@ transactions = set_transaction_categories(transactions, categories)
 account_values = set_deposits(account_values, transactions)
 
 # sidebar filters
+date_0, date_1 = st.sidebar.slider(
+    'Date:',
+    transactions['date'].min(), transactions['date'].max(),
+    (transactions['date'].min(), transactions['date'].max())
+)
 st.sidebar.header("Account:")
+transactions = add_date_filter(transactions, date_0, date_1)
+account_values = add_date_filter(account_values, date_0, date_1)
 account_names = get_active_accounts(account_values)
 account_types = get_multiselect(account_values, 'accountType')
 accounts, account_values, transactions = add_filters([accounts, account_values, transactions], 'accountType', account_types)
@@ -134,6 +148,7 @@ parent_names = get_multiselect(transactions, 'parentName')
 transactions = add_filter(transactions, 'parentName', parent_names)
 category_names = get_multiselect(transactions, 'categoryName')
 transactions = add_filter(transactions, 'categoryName', category_names)
+
 
 # display tables
 st.header('Transactions')
