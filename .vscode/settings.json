@@ -1,10 +1,12 @@
 {
   "cSpell.words": [
     "dataframe",
+    "dftools",
     "dtype",
     "fillna",
     "isin",
     "multiselect",
-    "plotly"
+    "plotly",
+    "streamlit"
   ]
 }
