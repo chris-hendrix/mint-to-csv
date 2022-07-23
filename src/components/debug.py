@@ -6,10 +6,13 @@ class Debug():
         transactions = data['transactions']
         account_values = data['accountValues']
         accounts = data['accounts']
+        categories = data['categories']
 
         col1, col2 = st.columns(2)
         st.header('Transactions')
         st.dataframe(transactions[['date', 'name', 'description', 'amount', 'categoryName', 'parentName']])
+        st.header('Categories')
+        st.dataframe(categories)
         with col1:
             st.header('Accounts')
             st.dataframe(accounts[['name', 'accountValue']])

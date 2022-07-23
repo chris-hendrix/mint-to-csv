@@ -16,4 +16,4 @@ pip install pandas
 pip install pyyaml
 pip install flake8
 pip install streamlit
-pip install plotly
+pip install altair

@@ -25,8 +25,10 @@ class SideBar():
         accounts, account_values, transactions = add_filters([accounts, account_values, transactions], 'name', account_names)
 
         st.sidebar.header("Category:")
-        parent_names = get_multiselect(transactions, 'parentName')
-        transactions = add_filter(transactions, 'parentName', parent_names)
+        category_types = get_multiselect(transactions, 'categoryType')
+        transactions = add_filter(transactions, 'categoryType', category_types)
+        category_groups = get_multiselect(transactions, 'parentName')
+        transactions = add_filter(transactions, 'parentName', category_groups)
         category_names = get_multiselect(transactions, 'categoryName')
         transactions = add_filter(transactions, 'categoryName', category_names)
 
@@ -34,7 +36,8 @@ class SideBar():
         filters['dateMax'] = date_max
         filters['accountNames'] = account_names
         filters['accountTypes'] = account_types
+        filters['categoryTypes'] = category_types
+        filters['categoryGroups'] = category_groups
         filters['categoryNames'] = category_names
-        filters['categoryGroups'] = parent_names
-        print(filters)
+
         self.filters = filters

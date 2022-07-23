@@ -6,6 +6,7 @@
     "fillna",
     "isin",
     "multiselect",
+    "networth",
     "plotly",
     "streamlit"
   ]
